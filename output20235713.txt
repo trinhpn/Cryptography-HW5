@@ -1,9 +1,0 @@
-The prime is: 691531 Running time: 0.078480436 seconds.
- 89
- 37
- 7
- 5
- 3
- 2
- 691530
-Generator g = 625331

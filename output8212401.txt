@@ -1,7 +1,0 @@
-The prime is: 163 Running time: 0.044818364 seconds.
- 3
- 3
- 3
- 3
- 2
- 162
