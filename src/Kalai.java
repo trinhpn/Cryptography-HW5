@@ -16,7 +16,7 @@ public class Kalai
 	static BigInteger two = new BigInteger("2");
 	static BigInteger upperN;
 	// Number of bits of N
-	static int numBit = 150;
+	static int numBit = 260;
 	public static void main(String[] args) throws IOException {
 		long start = System.nanoTime();
 		DateFormat dateFormat = new SimpleDateFormat("HHmmss");
@@ -49,7 +49,7 @@ public class Kalai
 	
 	
 	private static BigInteger generator(BigInteger p, ArrayList<BigInteger> factors) {
-		ArrayList<Integer> mArray = new ArrayList<Integer>();
+		ArrayList<BigInteger> mArray = new ArrayList<BigInteger>();
 		Random rand = new Random();
 		BigInteger result = new BigInteger("1");
 		// temp = p - 1
@@ -57,7 +57,7 @@ public class Kalai
 		boolean done = false;
 		// Create the m's array
 	    for(BigInteger factor : factors) {
-	    	int m = temp.divide(factor).intValue();
+	    	BigInteger m = temp.divide(factor);
 	    	mArray.add(m);
 
 	    }
@@ -66,15 +66,23 @@ public class Kalai
 	    	BigInteger g = randomR(p, rand);
 	    	if (g.equals(p)) continue;
 	    	boolean temp1 = true;
-	    	try {
-		    	for(Integer m : mArray) {
-		    		// temp1 = true only if all the g.pow(m) not equal 1
-		    		temp1 &= !g.pow(m).mod(p).equals(one); 
-		    	}
-	    	} catch (ArithmeticException ex) {
-	    		temp1 = false;
-	    		break;
+	    	for(BigInteger m : mArray) {
+	    		// temp1 = true only if all the g.pow(m) not equal 1
+	    		try {
+	    			temp1 &= !g.modPow(m, p).equals(one); 
+	    		} 
+	    		catch (ArithmeticException ex) {
+	    			if (m.testBit(0)) {
+	    				BigInteger m1 = m.divide(two);
+		    			temp1 &= !(g.modPow(m1, p).multiply(g.modPow(m1, p))).mod(p).equals(one); 
+	    			} else {
+	    				BigInteger m1 = m.divide(two);
+	    				BigInteger m2 = m.divide(two).add(one);
+		    			temp1 &= !(g.modPow(m1, p).multiply(g.modPow(m2, p))).mod(p).equals(one); 
+	    			}
+	    		}
 	    	}
+	    
 	    	// Temp1 true means we found generator, stop while loop 
 	    	done = temp1;
 	    	// record the g generator
