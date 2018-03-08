@@ -6,9 +6,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class Kalai
 {
@@ -19,31 +17,31 @@ public class Kalai
 	static int numBit = 260;
 	public static void main(String[] args) throws IOException {
 		long start = System.nanoTime();
-		DateFormat dateFormat = new SimpleDateFormat("HHmmss");
+		DateFormat dateFormat = new SimpleDateFormat("ddMMHHmm");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 
 		ArrayList<BigInteger> result = sequenceOfRs(two.pow(numBit).subtract(one), two.pow(numBit-1), numBit);
-		System.out.println("Running time: " + (System.nanoTime() - start)/1000000000.0);
 	    int size = result.size();
 
 		// Write result into an output file
 		String fileName = "output" + numBit + "bits"+ dateFormat.format(date) +".txt";
 	    PrintWriter out = new PrintWriter(new FileWriter(fileName, true), true);
-	    out.write("The prime is: " + result.get(size - 1).add(one) + " ");
-	    out.write("Running time: " + (System.nanoTime() - start)/1000000000.0 + " seconds.");
-	    for(BigInteger big : result) {
-	    	out.write("\n ");
-	    	out.write(big.toString());
-		}
+	    out.write("The prime is: " + result.get(size - 1) + " ");
+	    for (int i = 0; i < result.size()-1; i++) {
+	    	out.write("\nFactor: ");
+	    	out.write(result.get(i).toString());
+	    }
 
 	    System.out.println("Done finding prime factors of (p-1)");
 	    ArrayList<BigInteger> copy = new ArrayList<BigInteger>(result.subList(0, size - 2));
-	    BigInteger g = generator(result.get(size-1).add(one), copy);
+	    BigInteger g = generator(result.get(size-1), copy);
 		System.out.println("Generator g = " + g);
 	    out.write("\n");
 		out.write("Generator g = " + g);
+	    out.write("\nRunning time: " + (System.nanoTime() - start)/1000000000 + " seconds.");
 	    out.close();
+		System.out.println("Running time: " + (System.nanoTime() - start)/1000000000 + " seconds.");
 
 	}
 	
@@ -71,7 +69,7 @@ public class Kalai
 	    		try {
 	    			temp1 &= !g.modPow(m, p).equals(one); 
 	    		} 
-	    		catch (ArithmeticException ex) {
+	    		catch (ArithmeticException ex) { // handle overflow when m is too large
 	    			if (m.testBit(0)) {
 	    				BigInteger m1 = m.divide(two);
 		    			temp1 &= !(g.modPow(m1, p).multiply(g.modPow(m1, p))).mod(p).equals(one); 
@@ -101,6 +99,9 @@ public class Kalai
 		} while (r.compareTo(upper) == 1 || r.equals(BigInteger.ZERO));
 		return r;
 	}
+	
+	// Return an arraylist in which last element is the prime in given range bits
+	// Other elements are prime factors of p - 1
 	private static ArrayList<BigInteger> sequenceOfRs(BigInteger upperN, BigInteger lowerN, int bitLen) {
 		ArrayList<BigInteger> result = new ArrayList<>();
 		Kalai.upperN = upperN.add(BigInteger.ZERO);
@@ -121,14 +122,14 @@ public class Kalai
 			}
 			if (r.equals(one) ){
 				if (n.compareTo(lowerN) > -1 && n.compareTo(upperN) < 1 && n.compareTo(m) >= 0 && n.add(one).isProbablePrime(55)) {
-					System.out.println("\nDone");
-					result.add(n);
 					for(BigInteger big : result) {
-						System.err.println(big.toString() + " ");
+						System.out.println("Factor: " + big.toString() + " ");
 					}
+					result.add(n.add(one));
+					System.out.println("The prime is: " + n.add(one));
 					done = true;
 				}
-				else {
+				else { // reset the process
 					Kalai.upperN = upperN.add(BigInteger.ZERO);
 					m = new BigInteger(bitLen, rand);
 					n = new BigInteger("1");
